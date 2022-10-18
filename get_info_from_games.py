@@ -2,9 +2,12 @@ import time
 import requests
 import pandas as pd
 
-from src.parsing_functions import (check_data, get_games_info, MODULE_PATH)
+from src.parsing.parsing_functions import (check_data, get_games_info, MODULE_PATH)
 
-print(MODULE_PATH)
+
+
+
+
       
 if __name__ == '__main__':
     check_data()

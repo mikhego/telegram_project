@@ -10,12 +10,12 @@ from fake_useragent import UserAgent
 from bs4 import BeautifulSoup
 from pathlib import Path
 
+
 module_path = os.path.abspath(os.path.join('.'))
 if module_path not in sys.path:
     sys.path.append(module_path)
 
 MODULE_PATH = module_path
-print(MODULE_PATH)
 
 platforms_list = ['PC', 'PS', 'PS2', 'PS3', 'PS4', 'PS5', 'Switch', 'Xbox%20One', 'Xbox%20360', 'Xbox%20Series']
 
