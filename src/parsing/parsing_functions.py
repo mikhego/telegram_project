@@ -23,12 +23,13 @@ platforms_list = ['PC', 'PS', 'PS2', 'PS3', 'PS4', 'PS5', 'Switch', 'Xbox%20One'
 def find_or_create_data_file(filename: str, columns: list)-> pd.DataFrame:
     raw_file = Path(MODULE_PATH + filename)
     if raw_file.is_file():
-        print(f'{filename} EXIST. GO TO THE NEXT STEP')
+        #print(f'{filename} EXIST. GO TO THE NEXT STEP')
         df = pd.read_csv(MODULE_PATH + filename)
         return df
     else:
         print(f'{filename} NOT EXIST. GO TO CREATE FILE')
         df = pd.DataFrame(columns=columns)
+        df.to_csv(module_path + "/data/raw/data_info.csv", index=False)
         return df
 
 
@@ -128,9 +129,7 @@ def check_data():
 def parsing_games_info(id):
     result = requests.get(f'http://www.world-art.ru/games/games.php?id={id}' , headers={'User-Agent': UserAgent().chrome})
     soup = BeautifulSoup(result.text, "lxml")
-    tags = []
-    tags_info= []
- 
+    temp_data = pd.DataFrame() 
     if len(soup.find_all("a", class_='newtag1')) == 0:
         tags = 'no_tags'
         tags_info = 'no_tags_info'
@@ -142,8 +141,8 @@ def parsing_games_info(id):
             sys.exit(1)
     else:
         for i in soup.find_all("a", class_='newtag1'):
-            tags.append(i.text)
-            tags_info.append(i.get('title'))
+            tags = i.text
+            tags_info = i.get('title')
             try:    
                 info = soup.find('p', class_ = 'review').text
             except AttributeError as error:
@@ -155,28 +154,19 @@ def parsing_games_info(id):
                 'id': id,
                 'tags' : tags,
                 'info': info,
-                'tags_info': tags_info
-                    }
+                'tags_info': tags_info}
 
-    return info_dict
+    dict_df  = pd.DataFrame([info_dict], columns=info_dict.keys())
+    temp_data = pd.concat([temp_data, dict_df], axis =0)
+
+    return temp_data
     
 
-def get_games_info(games_list: list) -> list:
-    print(f'games counts: {len(games_list)}')
-    data_info = find_or_create_data_file(filename='/data/raw/data_info.csv', columns=['id', 'tags', 'info', 'tags_info'])
-    for id in tqdm(games_list):
-        if id not in data_info['id'].unique():
-            try:
-                info_dict = parsing_games_info(id)
+def get_games_info(games_id: int):
+    try:
+        temp_data = parsing_games_info(games_id)
+        temp_data.to_csv(MODULE_PATH + f'/data/raw/games_info/data_info_{games_id}.csv', index=False)
+    except requests.ConnectionError:
+        pass
 
-                temp_df  = pd.DataFrame([info_dict], columns=info_dict.keys())
-                data_info = pd.concat([data_info, temp_df], axis =0)
-                data_info.to_csv(module_path + "/data/raw/data_info.csv", index=False)
-
-            except requests.ConnectionError:
-                pass
-        else:
-            pass
-        
-    return data_info['id'].unique()
 
